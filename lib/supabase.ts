@@ -1,0 +1,8 @@
+import { createClient } from '@supabase/supabase-js';
+
+// These variables look for the keys we put in your .env.local file
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+
+// This "supabase" object is what we will use to talk to your database
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);

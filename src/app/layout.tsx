@@ -1,26 +1,17 @@
-import type { Metadata } from "next";
+"use client"; // Add this to the top
+import { usePathname } from "next/navigation";
 import "./globals.css";
 import Sidebar from "../components/Sidebar";
 
-export const metadata: Metadata = {
-  title: "SHAIDO Admin",
-  description: "Internal Dashboard",
-};
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const isLoginPage = pathname === "/login";
 
-
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
   return (
     <html lang="en">
       <body className="bg-slate-50 text-slate-900 flex">
-        {/* The Sidebar stays fixed on the left */}
-        <Sidebar />
-
-        {/* The Main Content - shifted right to not hide behind the sidebar */}
-        <main className="flex-1 ml-64 min-h-screen p-8">
+        {!isLoginPage && <Sidebar />}
+        <main className={`flex-1 min-h-screen ${!isLoginPage ? "ml-64 p-8" : ""}`}>
           {children}
         </main>
       </body>

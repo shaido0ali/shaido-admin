@@ -1,4 +1,4 @@
-"use client"; // Add this to the top
+"use client"; 
 import { usePathname } from "next/navigation";
 import "./globals.css";
 import Sidebar from "../components/Sidebar";
@@ -10,12 +10,24 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
   return (
     <html lang="en">
-      <body className="bg-slate-50 text-slate-900 flex">
+      <body className="bg-[#030712] text-slate-900">
         <AuthWrapper>
-          {!isLoginPage && <Sidebar />}
-          <main className={`flex-1 bg-[#030712] min-h-screen ${!isLoginPage ? "ml-64 p-8" : ""}`}>
-            {children}
-          </main>
+          <div className="flex min-h-screen">
+            {/* Sidebar is hidden on mobile via its own internal logic, 
+                but layout needs to stay flexible */}
+            {!isLoginPage && <Sidebar />}
+            
+            <main className={`
+              flex-1 min-h-screen transition-all duration-300
+              ${!isLoginPage 
+                ? "md:ml-64 p-4 md:p-8 pt-24 md:pt-8" 
+                : "w-full"}
+            `}>
+              <div className="max-w-7xl mx-auto">
+                {children}
+              </div>
+            </main>
+          </div>
         </AuthWrapper>
       </body>
     </html>

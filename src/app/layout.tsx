@@ -11,7 +11,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body className="bg-slate-50 text-slate-900 flex">
         {!isLoginPage && <Sidebar />}
-        <main className={`flex-1 min-h-screen ${!isLoginPage ? "ml-64 p-8" : ""}`}>
+        <main className={`flex-1 bg-[#030712] min-h-screen ${!isLoginPage ? "ml-64 p-8" : ""}`}>
           {children}
         </main>
       </body>

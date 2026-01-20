@@ -6,7 +6,7 @@ import { LayoutDashboard, ShoppingBag, Users, Settings, LogOut } from "lucide-re
 const menuItems = [
   { name: "Overview", icon: LayoutDashboard, path: "/" },
   { name: "Products", icon: ShoppingBag, path: "/products" },
-  { name: "Customers", icon: Users, path: "/customers" },
+  { name: "orders", icon: Users, path: "/orders" },
   { name: "Settings", icon: Settings, path: "/settings" },
 ];
 

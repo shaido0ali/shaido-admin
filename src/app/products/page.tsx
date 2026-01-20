@@ -12,6 +12,7 @@ export default function ProductsPage() {
   const [newPrice, setNewPrice] = useState("");
   const [category, setCategory] = useState("");
   const [newImageUrl, setNewImageUrl] = useState("");
+  const [description,setDescription]= useState("");
 
   // 1. Fetch products from Supabase on load
   useEffect(() => {
@@ -38,7 +39,9 @@ export default function ProductsPage() {
           price: parseFloat(newPrice), 
           category: category, 
           stock: 20,
-          image_url: newImageUrl // Added this change
+          image_url: newImageUrl,
+          description: description
+          
         }
       ])
       .select();
@@ -53,6 +56,7 @@ export default function ProductsPage() {
       setNewPrice("");
       setCategory("");
       setNewImageUrl("");
+      setDescription("");
     }
   };
 
@@ -75,8 +79,8 @@ export default function ProductsPage() {
       {/* Header */}
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">Inventory</h1>
-          <p className="text-slate-500">Manage your product catalog.</p>
+          <h1 className="text-3xl font-bold text-white-900">Inventory</h1>
+          <p className="text-slate-200">Manage your product catalog.</p>
         </div>
         <button 
           onClick={() => setIsDrawerOpen(true)}
@@ -138,7 +142,7 @@ export default function ProductsPage() {
               <label className="block text-sm font-bold text-slate-700 mb-2">Product Name</label>
               <input 
                 type="text" required value={newName} onChange={(e) => setNewName(e.target.value)}
-                className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-500"
+                className="w-full text-slate-700 p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-500"
                 placeholder="e.g. Shaido Ghost Ultra"
               />
             </div>
@@ -146,7 +150,7 @@ export default function ProductsPage() {
               <label className="block text-sm font-bold text-slate-700 mb-2">Price ($)</label>
               <input 
                 type="number" step="0.01" required value={newPrice} onChange={(e) => setNewPrice(e.target.value)}
-                className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-500"
+                className="w-full p-3 text-slate-700 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-500"
                 placeholder="0.00"
               />
             </div>
@@ -154,15 +158,23 @@ export default function ProductsPage() {
               <label className="block text-sm font-bold text-slate-700 mb-2">Category</label>
               <input 
                 type="text" required value={category} onChange={(e) => setCategory(e.target.value)}
-                className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-500"
+                className="w-full text-slate-700 p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-500"
                 placeholder="e.g. Running"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-bold text-slate-700 mb-2">description</label>
+              <input 
+                type="text" required value={description} onChange={(e) => setDescription(e.target.value)}
+                className="w-full p-3 bg-slate-50 text-slate-700 border border-slate-200 rounded-xl outline-none focus:border-blue-500"
+                placeholder=""
               />
             </div>
             <div>
               <label className="block text-sm font-bold text-slate-700 mb-2">Image URL</label>
               <input 
                 type="text" value={newImageUrl} onChange={(e) => setNewImageUrl(e.target.value)}
-                className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-500"
+                className="w-full text-slate-700 p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-500"
                 placeholder="https://images.com/shoe.jpg"
               />
             </div>

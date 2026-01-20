@@ -1,18 +1,20 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Search, Filter, MoreHorizontal, Loader2, DollarSign, Package, Mail, MapPin } from "lucide-react";
+import { Search, Loader2, DollarSign, Package, Mail, MapPin, MoreHorizontal, RotateCcw } from "lucide-react";
 import { supabase } from "../../../lib/supabase";
 
 interface Order {
   id: string | number;
   customer_name: string;
   customer_email: string;
-  address: string; // Added address
+  address: string;
   total_amount: number;
   status: string;
   created_at: string;
   items: { name: string }[];
 }
+
+const STORAGE_KEY = "shaido_demo_orders";
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -20,38 +22,51 @@ export default function OrdersPage() {
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
-    async function fetchOrders() {
-      const { data, error } = await supabase
-        .from('orders')
-        .select('*')
-        .order('created_at', { ascending: false });
+    async function initOrders() {
+      // 1. Check for browser-saved data first
+      const savedData = localStorage.getItem(STORAGE_KEY);
 
-      if (!error && data) {
-        setOrders(data as Order[]);
+      if (savedData) {
+        setOrders(JSON.parse(savedData));
+        setLoading(false);
+      } else {
+        // 2. Fetch fresh data from Supabase if no local copy exists
+        const { data, error } = await supabase
+          .from('orders')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (!error && data) {
+          const typedData = data as Order[];
+          setOrders(typedData);
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(typedData));
+        }
+        setLoading(false);
       }
-      setLoading(false);
     }
-    fetchOrders();
+    initOrders();
   }, []);
 
-  const updateOrderStatus = async (orderId: string | number, newStatus: string) => {
-    const { error } = await supabase
-      .from('orders')
-      .update({ status: newStatus })
-      .eq('id', orderId);
-  
-    if (error) {
-      alert("Failed to update status: " + error.message);
-    } else {
-      setOrders(prevOrders => prevOrders.map(order => 
-        order.id === orderId ? { ...order, status: newStatus } : order
-      ));
-    }
+  // Update Status (Local-Only for Portfolio Safety)
+  const updateOrderStatus = (orderId: string | number, newStatus: string) => {
+    const updated = orders.map(order => 
+      order.id === orderId ? { ...order, status: newStatus } : order
+    );
+    
+    setOrders(updated);
+    // Save locally so the change persists during their session
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+  };
+
+  // Reset to original Supabase data
+  const resetDemo = () => {
+    localStorage.removeItem(STORAGE_KEY);
+    window.location.reload();
   };
 
   const filteredOrders = orders.filter(order => 
     order.customer_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    order.customer_email?.toLowerCase().includes(searchTerm.toLowerCase()) || // Added email search
+    order.customer_email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     order.id.toString().includes(searchTerm)
   );
 
@@ -61,9 +76,15 @@ export default function OrdersPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-end">
         <div>
-          <h1 className="text-3xl font-bold text-slate-200">Orders</h1>
-          <p className="text-slate-300">Manage and track your customer transactions in real-time.</p>
+          <h1 className="text-3xl font-bold text-slate-900">Orders</h1>
+          <p className="text-slate-500 text-sm">Demo Mode: Changes are saved to your browser session.</p>
         </div>
+        <button 
+          onClick={resetDemo}
+          className="flex items-center gap-2 bg-slate-100 text-slate-600 px-4 py-2 rounded-xl font-bold text-sm hover:bg-slate-200 transition-all border border-slate-200"
+        >
+          <RotateCcw size={16} /> Reset Data
+        </button>
       </div>
 
       {/* Stats Cards */}
@@ -107,7 +128,7 @@ export default function OrdersPage() {
         {loading ? (
           <div className="p-20 flex flex-col items-center justify-center text-slate-400">
             <Loader2 className="animate-spin mb-2" size={32} />
-            <p className="font-medium">Loading live orders...</p>
+            <p className="font-medium">Loading orders...</p>
           </div>
         ) : (
           <div className="overflow-x-auto">

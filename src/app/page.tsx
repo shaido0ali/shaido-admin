@@ -1,12 +1,11 @@
 "use client";
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
-import { DollarSign, ShoppingCart, Users, TrendingUp, Loader2, ArrowRight } from "lucide-react";
+import { DollarSign, ShoppingCart, Users, TrendingUp, Loader2, ArrowRight, RotateCcw } from "lucide-react";
 import StatCard from "../components/StatCard";
 import Link from "next/link";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
-// 1. Define Types to fix ESLint "any" errors
 interface OrderItem {
   name: string;
   price: number;
@@ -29,6 +28,8 @@ interface DashboardStats {
   customers: number;
 }
 
+const STORAGE_KEY = "shaido_demo_orders";
+
 export default function DashboardPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
@@ -38,35 +39,49 @@ export default function DashboardPage() {
     customers: 0,
   });
 
-  // 2. Fetch Live Data
   useEffect(() => {
     async function fetchDashboardData() {
-      const { data, error } = await supabase
-        .from('orders')
-        .select('*')
-        .order('created_at', { ascending: false });
+      // 1. Check LocalStorage first (Sync with Orders page)
+      const savedData = localStorage.getItem(STORAGE_KEY);
 
-      if (!error && data) {
-        const typedData = data as Order[];
-        setOrders(typedData);
-        
-        // Calculate Totals safely
-        const totalRevenue = typedData.reduce((sum, order) => sum + (order.total_amount || 0), 0);
-        const totalSales = typedData.length;
-        const uniqueCustomers = new Set(typedData.map(o => o.customer_email)).size;
+      let dataToUse: Order[] = [];
 
-        setStats({
-          revenue: totalRevenue,
-          sales: totalSales,
-          customers: uniqueCustomers
-        });
+      if (savedData) {
+        dataToUse = JSON.parse(savedData);
+      } else {
+        // 2. Fetch from Supabase if first time visit
+        const { data, error } = await supabase
+          .from('orders')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (!error && data) {
+          dataToUse = data as Order[];
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToUse));
+        }
       }
+
+      // 3. Calculate Stats from the chosen data
+      const totalRevenue = dataToUse.reduce((sum, order) => sum + (order.total_amount || 0), 0);
+      const totalSales = dataToUse.length;
+      const uniqueCustomers = new Set(dataToUse.map(o => o.customer_email)).size;
+
+      setOrders(dataToUse);
+      setStats({
+        revenue: totalRevenue,
+        sales: totalSales,
+        customers: uniqueCustomers
+      });
       setLoading(false);
     }
     fetchDashboardData();
   }, []);
 
-  // 3. Prepare Chart Data (Last 7 transactions)
+  const resetDemo = () => {
+    localStorage.removeItem(STORAGE_KEY);
+    window.location.reload();
+  };
+
   const chartData = orders.slice(0, 7).reverse().map((order) => ({
     name: new Date(order.created_at).toLocaleDateString(undefined, { weekday: 'short' }),
     sales: order.total_amount
@@ -85,12 +100,20 @@ export default function DashboardPage() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-white-900">Welcome back, Admin</h1>
-          <p className="text-slate-200">Here is what is happening with SHAIDO today.</p>
+          <h1 className="text-3xl font-bold text-slate-900">Welcome back, Admin</h1>
+          <p className="text-slate-500">Overview of your synced demo data.</p>
         </div>
-        <Link href="/orders" className="bg-blue-600 text-white px-5 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/25 ">
-          Manage Orders <ArrowRight size={18} />
-        </Link>
+        <div className="flex gap-3">
+          <button 
+            onClick={resetDemo}
+            className="flex items-center gap-2 bg-slate-100 text-slate-600 px-4 py-2 rounded-xl font-bold text-sm hover:bg-slate-200 transition-all border border-slate-200"
+          >
+            <RotateCcw size={16} /> Reset
+          </button>
+          <Link href="/orders" className="bg-blue-600 text-white px-5 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/25 ">
+            Manage Orders <ArrowRight size={18} />
+          </Link>
+        </div>
       </div>
 
       {/* Stats Grid */}
